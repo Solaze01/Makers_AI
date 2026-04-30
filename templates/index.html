@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makers AI Editorial Assistant</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <p class="eyebrow">Editorial Automation Dashboard</p>
+            <h1>Makers AI Editorial Assistant</h1>
+            <p>Auto-generate structured article drafts from selected news sources.</p>
+        </div>
+    </div>
+
+    <form method="POST" class="form-box">
+        <input
+            type="url"
+            name="url"
+            placeholder="Paste news article link here..."
+            required
+        >
+        <button type="submit">Generate Draft</button>
+    </form>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% if article %}
+    <div class="article-card featured-draft">
+        <div class="draft-label">Draft Ready</div>
+
+        <h2>{{ article.title }}</h2>
+
+        <button onclick="copyArticle()">Copy Article</button>
+
+        <div class="article-content" id="generatedArticle">
+            {{ article.content | safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section-header">
+        <h2>Latest Articles from Sources</h2>
+        <p>Relevant articles pulled from monitored feeds.</p>
+    </div>
+
+    <div class="article-grid">
+        {% for item in latest_articles %}
+            <div class="source-card">
+                <div class="source-name">{{ item.source }}</div>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.published }}</p>
+
+                <form method="POST">
+                    <input type="hidden" name="url" value="{{ item.link }}">
+                    <button type="submit">Generate Draft</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="section-header">
+        <h2>Saved Drafts</h2>
+        <p>Generated drafts stored for review, approval, and publishing.</p>
+    </div>
+
+    {% if not saved_articles %}
+        <div class="empty-state">No drafts yet. The system will generate drafts automatically when new relevant articles are found.</div>
+    {% endif %}
+
+    {% for item in saved_articles %}
+        <details class="draft-dropdown">
+            <summary>
+                <div class="draft-summary-text">
+                    <span>{{ item[1] }}</span>
+                    <small class="created-at">{{ item[4] }}</small>
+                </div>
+                <small class="status {{ item[3] }}">{{ item[3] }}</small>
+            </summary>
+
+            <div class="article-content draft-content">
+                {{ item[2] | safe }}
+            </div>
+
+            <div class="draft-actions">
+                {% if item[3] == "draft" %}
+                <form method="POST" action="/approve/{{ item[0] }}">
+                    <button class="approve-btn">Approve Draft</button>
+                </form>
+                {% elif item[3] == "approved" %}
+                <form method="POST" action="/publish/{{ item[0] }}">
+                    <button class="publish-btn">Publish</button>
+                </form>
+                {% elif item[3] == "published" %}
+                    <div class="published-label">🚀 Published</div>
+                {% else %}
+                    <div class="approved-label">Approved</div>
+                {% endif %}
+            </div>
+        </details>
+    {% endfor %}
+
+</div>
+
+<script>
+function copyArticle() {
+    const content = document.querySelector("#generatedArticle").innerText;
+    navigator.clipboard.writeText(content);
+    alert("Article copied!");
+}
+</script>
+
+</body>
+</html>
