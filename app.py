@@ -13,6 +13,11 @@ from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 
+if os.environ.get("RENDER") == "true":
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=auto_generate, trigger="interval", minutes=30)
+    scheduler.start()
+    
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -440,11 +445,10 @@ def index():
         saved_articles=get_saved_articles()
     )
 
-if __name__ == "__main__":
-    init_db()
+# 🔥 ALWAYS run when app starts (important for Render)
+init_db()
 
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=auto_generate, trigger="interval", minutes=30)
-    scheduler.start()
-
-    app.run()
+# 🔥 Start scheduler (only once)
+scheduler = BackgroundScheduler()
+scheduler.add_job(func=auto_generate, trigger="interval", minutes=30)
+scheduler.start()
