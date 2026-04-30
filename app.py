@@ -12,11 +12,6 @@ from flask import Flask, render_template, request
 from bs4 import BeautifulSoup
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-
-if os.environ.get("RENDER") == "true":
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=auto_generate, trigger="interval", minutes=30)
-    scheduler.start()
     
 load_dotenv()
 
@@ -449,6 +444,7 @@ def index():
 init_db()
 
 # 🔥 Start scheduler (only once)
-scheduler = BackgroundScheduler()
-scheduler.add_job(func=auto_generate, trigger="interval", minutes=30)
-scheduler.start()
+if os.environ.get("RENDER") == "true":
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(func=auto_generate, trigger="interval", minutes=30)
+    scheduler.start()
